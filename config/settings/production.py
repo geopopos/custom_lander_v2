@@ -110,6 +110,7 @@ INSTALLED_APPS += ["anymail"]
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY", default=""),
+    "MAILGUN_SENDER_DOMAIN": "vupautomations.com",
 }
 
 
