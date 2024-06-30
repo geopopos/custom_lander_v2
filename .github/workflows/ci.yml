@@ -56,20 +56,19 @@ jobs:
         run: docker compose -f docker-compose.local.yml down
 
   deploy:
-   runs-on: ubuntu-latest
-   steps:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: ssh into server using secrets SSH_HOST, SSH_KEY, SSH_USERNAME
-      uses: appleboy/ssh-action@master
-      with:
-       host: ${{ secrets.SSH_HOST }}
-       username: ${{ secrets.SSH_USERNAME }}
-       key: ${{ secrets.SSH_KEY }}
-       script: |
-        cd custom_lander_v2/
-        git pull origin master
-        docker-compose -f docker-compose.production.yml down
-        docker compose -f docker-compose.production.yml build
-        docker compose -f docker-compose.production.yml up -d
-        docker compose -f docker-compose.production.yml run --rm django python manage.py migrate
+      - name: ssh into server using secrets SSH_HOST, SSH_KEY, SSH_USERNAME
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd custom_lander_v2/
+            git pull origin master
+            docker-compose -f docker-compose.production.yml down
+            docker compose -f docker-compose.production.yml build
+            docker compose -f docker-compose.production.yml up -d
+            docker compose -f docker-compose.production.yml run --rm django python manage.py migrate
