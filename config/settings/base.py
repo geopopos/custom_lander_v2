@@ -318,3 +318,5 @@ SOCIALACCOUNT_FORMS = {
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+NETLIFY_CLIENT_ID = env("NETLIFY_CLIENT_ID")
+NETLIFY_SECRET = env("NETLIFY_SECRET")

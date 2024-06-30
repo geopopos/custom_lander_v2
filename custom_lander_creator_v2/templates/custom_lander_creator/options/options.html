@@ -1,0 +1,28 @@
+{% extends "custom_lander_creator/custom_lander_creator_base.html" %}
+
+{% block title %}
+  Custom Lander Creator Dash
+{% endblock title %}
+{% block additional_css %}
+  <style>
+    .netlify-btn {
+      background-color: #3DE6E2;
+      border-color: #3DE6E2;
+    }
+  </style>
+{% endblock additional_css %}
+{% block inner_content %}
+  <div class="container">
+    <div class="row">
+      <!-- a button with a netlify logo in it that goes to an external url -->
+      <a href="{{ auth_link }}"
+         target="_blank"
+         class="btn btn-primary netlify-btn">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiHIcv29dwCTi1xUzgHqy3xKwJ-7BzBncl5Q&s"
+             alt="Netlify Logo"
+             height="24" />
+        Connect To Netlify
+      </a>
+    </div>
+  </div>
+{% endblock inner_content %}
