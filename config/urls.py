@@ -20,7 +20,9 @@ urlpatterns = [
     path("users/", include("custom_lander_creator_v2.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-    path("custom_lander/", include("custom_lander_creator.urls")),
+    path(
+        "custom_lander/", include("custom_lander_creator_v2.custom_lander_creator.urls")
+    ),
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

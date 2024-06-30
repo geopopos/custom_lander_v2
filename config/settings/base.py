@@ -82,7 +82,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "custom_lander_creator_v2.users",
-    # Your stuff: custom apps go here
+    "custom_lander_creator_v2.custom_lander_creator",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
