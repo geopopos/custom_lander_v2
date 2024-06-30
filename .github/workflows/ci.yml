@@ -57,7 +57,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-
+    needs: [linter, pytest]
     steps:
       - name: ssh into server using secrets SSH_HOST, SSH_KEY, SSH_USERNAME
         uses: appleboy/ssh-action@master
