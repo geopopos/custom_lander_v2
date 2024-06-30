@@ -109,8 +109,8 @@ INSTALLED_APPS += ["anymail"]
 # https://anymail.readthedocs.io/en/stable/esps
 EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 ANYMAIL = {
-    "RESEND_API_KEY": env("RESEND_API_KEY", default=""),
-    "RESEND_SIGNING_SECRET": env("RESEND_SIGNING_SECRET", default=""),
+    "MAILGUN_API_KEY": env("MAILGUN_API_KEY", default=""),
+    "MAILGUN_SENDER_DOMAIN": "volumeupagencymail.com",
 }
 
 
