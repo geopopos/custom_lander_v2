@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=custom_lander_creator_v2
+POSTGRES_USER=VHbUpSltJWoDaEQBKySMTHQXTihWnKKZ
+POSTGRES_PASSWORD=TBhJLyqpfRI0261oLehZ9hu6DHXKaQURLlFA0K78yaQgmqSFQKHR1JGFKOR5TlIR
