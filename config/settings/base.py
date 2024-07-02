@@ -318,7 +318,7 @@ SOCIALACCOUNT_FORMS = {
 
 # Your stuff...
 # ------------------------------------------------------------------------------
-NETLIFY_CLIENT_ID = env("NETLIFY_CLIENT_ID")
+NETLIFY_CLIENT_ID = env("NETLIFY_CLIENT_ID", default=None)
 NETLIFY_SECRET = env("NETLIFY_SECRET")
 
 GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
