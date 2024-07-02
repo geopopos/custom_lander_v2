@@ -35,8 +35,9 @@ class OptionsView(LoginRequiredMixin, View):
         github_client_id = settings.GITHUB_CLIENT_ID
         characters = string.ascii_letters + string.digits + string.punctuation
         state = "".join(secrets.choice(characters) for i in range(32))
+        encoded_state = quote(state, safe="")
         github_redirect_uri = f"{base_url}custom_lander/options/github_redirect/"
-        github_auth_link = f"https://github.com/login/oauth/authorize?client_id={github_client_id}&state={state}&redirect_uri={github_redirect_uri}"
+        github_auth_link = f"https://github.com/login/oauth/authorize?client_id={github_client_id}&state={encoded_state}&redirect_uri={github_redirect_uri}"
 
         github_token_exists = OAuthToken.objects.filter(
             user=request.user,
@@ -162,3 +163,58 @@ class GithubRedirectView(LoginRequiredMixin, View):
 
 
 github_redirect_view = GithubRedirectView.as_view()
+
+
+class GithubRepoView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return render(request, "custom_lander_creator/create_github_repo.html")
+
+    def post(self, request, *args, **kwargs):
+        token_record = OAuthToken.objects.filter(user=request.user, provider="github")
+        access_token = token_record[0].access_token
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {access_token}",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+
+        # grab repo name, description, homepage, private, and is_template from the form
+        repo_name = request.POST.get("repo_name")
+        repo_description = request.POST.get("repo_description")
+        repo_homepage = request.POST.get("repo_homepage")
+        repo_private = request.POST.get("repo_private")
+        repo_is_template = request.POST.get("repo_is_template")
+
+        data = {
+            "name": repo_name,
+            "description": repo_description,
+            "homepage": repo_homepage,
+            "private": repo_private == "on",
+            "is_template": repo_is_template == "on",
+        }
+
+        response = requests.post(
+            "https://api.github.com/user/repos",
+            headers=headers,
+            json=data,
+            timeout=10,
+        )
+
+        # Check the response
+        http_ok = 201
+        if response.status_code == http_ok:
+            # set up success message for django jinja template
+            messages.success(
+                request,
+                f"Successfully created GitHub repository {repo_name}.",
+            )
+            return render(request, "custom_lander_creator/create_github_repo.html")
+        # set up error message for django jinja template
+        messages.error(
+            request,
+            f"Failed to create GitHub repository {repo_name}.",
+        )
+        return render(request, "custom_lander_creator/create_github_repo.html")
+
+
+github_repo_view = GithubRepoView.as_view()

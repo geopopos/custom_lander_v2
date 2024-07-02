@@ -21,6 +21,13 @@
               </a>
             </li>
             <li class="nav-item">
+              {% url 'custom_lander_creator:create_github_repo' as github_creator %}
+              <a class="nav-link {% if request.path == github_creator %}active{% endif %}"
+                 href="{{ github_creator }}">
+                <i class="fab fa-github"></i> Create Github Repo
+              </a>
+            </li>
+            <li class="nav-item">
               {% url 'custom_lander_creator:options' as options_url %}
               <a class="nav-link {% if request.path == options_url %}active{% endif %}"
                  href="{{ options_url }}">
