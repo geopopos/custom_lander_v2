@@ -78,3 +78,9 @@ CELERY_TASK_EAGER_PROPAGATES = True
 
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+NETLIFY_CLIENT_ID = env("NETLIFY_CLIENT_ID", default=None)
+NETLIFY_SECRET = env("NETLIFY_SECRET", default=None)
+
+GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID", default=None)
+GITHUB_CLIENT_SECRET = env("GITHUB_CLIENT_SECRET", default=None)

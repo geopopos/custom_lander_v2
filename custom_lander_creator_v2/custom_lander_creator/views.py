@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.generic import View
@@ -34,9 +35,7 @@ class OptionsView(LoginRequiredMixin, View):
         github_client_id = settings.GITHUB_CLIENT_ID
         characters = string.ascii_letters + string.digits + string.punctuation
         state = "".join(secrets.choice(characters) for i in range(32))
-        github_redirect_uri = (
-            "http://localhost:8000/custom_lander/options/github_redirect/"
-        )
+        github_redirect_uri = f"{base_url}custom_lander/options/github_redirect/"
         github_auth_link = f"https://github.com/login/oauth/authorize?client_id={github_client_id}&state={state}&redirect_uri={github_redirect_uri}"
 
         github_token_exists = OAuthToken.objects.filter(
@@ -96,6 +95,7 @@ netlify_redirect_view = NetlifyRedirectView.as_view()
 
 class GithubRedirectView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
+        base_url = f"{request.scheme}://{request.get_host()}/"
         code = request.GET.get("code")
         if not code:
             messages.error(
@@ -106,12 +106,14 @@ class GithubRedirectView(LoginRequiredMixin, View):
         # call the netlify API to get the access token
         client_id = settings.GITHUB_CLIENT_ID
         client_secret = settings.GITHUB_CLIENT_SECRET
+        redirect_uri = base_url + "custom_lander/options/github_redirect/"
 
         # Create the payload
         payload = {
             "code": code,
             "client_id": client_id,
             "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
         }
         headers = {"Accept": "application/json"}
 
@@ -132,6 +134,9 @@ class GithubRedirectView(LoginRequiredMixin, View):
 
         response_data = response.json()
         if "access_token" not in response_data:
+            response_json = response.json()
+            response_json["redirect_uri"] = redirect_uri
+            return JsonResponse(response_json)
             messages.error(
                 request,
                 "Access token not found. Please go back and try again.",
