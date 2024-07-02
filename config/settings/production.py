@@ -178,7 +178,7 @@ sentry_sdk.init(
 # Your stuff...
 # ------------------------------------------------------------------------------
 NETLIFY_CLIENT_ID = env("NETLIFY_CLIENT_ID", default=None)
-NETLIFY_SECRET = env("NETLIFY_SECRET")
+NETLIFY_SECRET = env("NETLIFY_SECRET", default=None)
 
-GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
-GITHUB_CLIENT_SECRET = env("GITHUB_CLIENT_SECRET")
+GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID", default=None)
+GITHUB_CLIENT_SECRET = env("GITHUB_CLIENT_SECRET", default=None)
