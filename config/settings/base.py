@@ -320,3 +320,6 @@ SOCIALACCOUNT_FORMS = {
 # ------------------------------------------------------------------------------
 NETLIFY_CLIENT_ID = env("NETLIFY_CLIENT_ID")
 NETLIFY_SECRET = env("NETLIFY_SECRET")
+
+GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = env("GITHUB_CLIENT_SECRET")

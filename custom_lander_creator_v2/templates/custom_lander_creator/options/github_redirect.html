@@ -1,0 +1,25 @@
+{% extends "custom_lander_creator/custom_lander_creator_base.html" %}
+
+{% block title %}
+  Custom Lander Creator Dash
+{% endblock title %}
+{% block inner_content %}
+  <div class="container text-center">
+    <div class="row">
+      <div class="col-sm-12">
+        <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png"
+             alt="GitHub Logo"
+             class="img-fluid" />
+        <h2>
+          {% if messages %}
+            {% for message in messages %}{{ message }}{% endfor %}
+          {% else %}
+            Waiting for authentication result...
+          {% endif %}
+        </h2>
+        <a href="{% url 'custom_lander_creator:options' %}"
+           class="btn btn-primary mt-4">Back</a>
+      </div>
+    </div>
+  </div>
+{% endblock inner_content %}
