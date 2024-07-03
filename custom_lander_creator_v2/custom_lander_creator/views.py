@@ -7,9 +7,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.utils.html import format_html
 from django.views.generic import View
 
 from .models import OAuthToken
@@ -137,7 +137,6 @@ class GithubRedirectView(LoginRequiredMixin, View):
         if "access_token" not in response_data:
             response_json = response.json()
             response_json["redirect_uri"] = redirect_uri
-            return JsonResponse(response_json)
             messages.error(
                 request,
                 "Access token not found. Please go back and try again.",
@@ -202,6 +201,7 @@ class GithubRepoView(LoginRequiredMixin, View):
 
         # Check the response
         http_ok = 201
+        http_no_perm = 403
         if response.status_code == http_ok:
             # set up success message for django jinja template
             messages.success(
@@ -209,6 +209,20 @@ class GithubRepoView(LoginRequiredMixin, View):
                 f"Successfully created GitHub repository {repo_name}.",
             )
             return render(request, "custom_lander_creator/create_github_repo.html")
+        if response.status_code == http_no_perm:
+            # set up error message for django jinja template
+            messages.error(
+                request,
+                format_html(
+                    f"Failed to create GitHub repository {repo_name}."
+                    "You need to install the app"
+                    "<a href='https://github.com/apps/custom-lander-creator'"
+                    "target='_blank'>"
+                    "Install Custom Lander Creator</a> on your GitHub account.",
+                ),
+            )
+            return render(request, "custom_lander_creator/create_github_repo.html")
+
         # set up error message for django jinja template
         messages.error(
             request,
