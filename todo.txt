@@ -1,3 +1,6 @@
 [] set up views as classes for custom_lander_creator
 [] make sure apps cannot be accessed unless authenticated
 [] fix netlify oauth
+
+set this up for github push
+https://www.phind.com/search?cache=y0tds1gb1kdfevf453hutwac
