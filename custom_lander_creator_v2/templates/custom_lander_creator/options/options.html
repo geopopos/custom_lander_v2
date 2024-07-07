@@ -27,9 +27,19 @@
                  height="24"
                  class="mb-2" />
             <p class="mb-2">Netlify</p>
-            <a href="{{ auth_link }}"
-               target="_blank"
-               class="btn btn-primary netlify-btn">Connect To Netlify</a>
+            {% if netlify_token_exists %}
+              <button class="btn btn-light" disabled>
+                <i class="fas fa-check-circle check-icon"></i> Connected to Netlify
+              </button>
+              <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="delete_netlify_token" class="btn btn-danger">Delete Connection</button>
+              </form>
+            {% else %}
+              <a href="{{ auth_link }}"
+                 target="_blank"
+                 class="btn btn-primary netlify-btn">Connect To Netlify</a>
+            {% endif %}
           </div>
         </div>
       </div>

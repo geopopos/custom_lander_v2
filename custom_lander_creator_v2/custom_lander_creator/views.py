@@ -6,7 +6,6 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.html import format_html
@@ -44,10 +43,16 @@ class OptionsView(LoginRequiredMixin, View):
             provider="github",
         ).exists()
 
+        netlify_token_exists = OAuthToken.objects.filter(
+            user=request.user,
+            provider="netlify",
+        ).exists()
+
         context = {
             "auth_link": auth_link,
             "github_auth_link": github_auth_link,
             "github_token_exists": github_token_exists,
+            "netlify_token_exists": netlify_token_exists,
         }
         return render(request, "custom_lander_creator/options/options.html", context)
 
@@ -55,6 +60,9 @@ class OptionsView(LoginRequiredMixin, View):
         if "delete_github_token" in request.POST:
             OAuthToken.objects.filter(user=request.user, provider="github").delete()
             messages.success(request, "GitHub connection has been deleted.")
+        if "delete_netlify_token" in request.POST:
+            OAuthToken.objects.filter(user=request.user, provider="netlify").delete()
+            messages.success(request, "Netlify connection has been deleted.")
         return redirect("custom_lander_creator:options")
 
 
@@ -69,9 +77,7 @@ class NetlifyRedirectView(LoginRequiredMixin, View):
         client_id = settings.NETLIFY_CLIENT_ID
         client_secret = settings.NETLIFY_SECRET
 
-        redirect_uri = (
-            "http%3A%2F%2Flocalhost%3A8000%2Fcustom_lander%2Foptions%2Fnetlify_redirect"
-        )
+        redirect_uri = "http://localhost:8000/custom_lander/options/netlify_redirect"
 
         # Create the payload
         payload = {
@@ -84,11 +90,45 @@ class NetlifyRedirectView(LoginRequiredMixin, View):
 
         response = requests.post(
             "https://api.netlify.com/oauth/token",
-            params=payload,
+            data=payload,
             timeout=10,
         )
 
-        return HttpResponse(response.json())
+        response_json = response.json()
+
+        http_ok = 200
+
+        if response.status_code != http_ok:
+            messages.error(
+                request,
+                format_html(
+                    "There was an error getting the access token from Netlify."
+                    "Please go back and try again.",
+                ),
+            )
+            return render(
+                request,
+                "custom_lander_creator/options/netlify_redirect.html",
+            )
+
+        access_token = response_json.get("access_token")
+        refresh_token = response_json.get("refresh_token")
+        scope = response_json.get("scope")
+        token_type = response_json.get("token_type")
+
+        OAuthToken.objects.update_or_create(
+            user=request.user,
+            provider="netlify",
+            defaults={
+                "access_token": access_token,
+                "token_type": token_type,
+                "scope": scope,
+                "refresh_token": refresh_token,
+            },
+        )
+
+        messages.success(request, "Successfully connected to Netlify.")
+        return render(request, "custom_lander_creator/options/netlify_redirect.html")
 
 
 netlify_redirect_view = NetlifyRedirectView.as_view()

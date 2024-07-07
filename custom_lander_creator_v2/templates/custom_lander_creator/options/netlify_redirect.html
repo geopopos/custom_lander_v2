@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Custom Lander Creator Dash
+{% endblock title %}
+{% block content %}
+  <div class="container text-center">
+    <div class="row">
+      <div class="col-sm-12">
+        <img src="https://logosandtypes.com/wp-content/uploads/2023/03/Netlify.png"
+             alt="Netlify Logo"
+             class="img-thumbnail img-sm" />
+        {% if messages %}
+          {% for message in messages %}
+            <h2>
+              <div>{{ message }}</div>
+            </h2>
+          {% endfor %}
+          <div>Netlify Successfully Connected</div>
+          <div>You can now navigate back to the options page.</div>
+        {% else %}
+          <h2>Waiting for authentication result...</h2>
+        {% endif %}
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <a href="{% url 'custom_lander_creator:options' %}"
+             class="btn btn-primary mt-4">Back</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
