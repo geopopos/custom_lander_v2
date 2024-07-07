@@ -27,8 +27,9 @@ class OptionsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         base_url = f"{request.scheme}://{request.get_host()}/"
         redirect_uri = base_url + "custom_lander/options/netlify_redirect"
+        encoded_redirect_uri = quote(redirect_uri, safe="")
 
-        auth_link = f"https://app.netlify.com/authorize?client_id=LN1DhO6Gn--SrOtB_6BP43jYgbhcd5Y7EUUX0tn_epg&response_type=code&redirect_uri={redirect_uri}"
+        auth_link = f"https://app.netlify.com/authorize?client_id=LN1DhO6Gn--SrOtB_6BP43jYgbhcd5Y7EUUX0tn_epg&response_type=code&redirect_uri={encoded_redirect_uri}"
 
         github_client_id = settings.GITHUB_CLIENT_ID
         characters = string.ascii_letters + string.digits + string.punctuation
