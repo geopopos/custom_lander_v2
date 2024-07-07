@@ -27,9 +27,8 @@ class OptionsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         base_url = f"{request.scheme}://{request.get_host()}/"
         redirect_uri = base_url + "custom_lander/options/netlify_redirect"
-        encoded_redirect_uri = quote(redirect_uri, safe="")
 
-        auth_link = f"https://app.netlify.com/authorize?client_id=LN1DhO6Gn--SrOtB_6BP43jYgbhcd5Y7EUUX0tn_epg&response_type=code&redirect_uri={encoded_redirect_uri}"
+        auth_link = f"https://app.netlify.com/authorize?client_id=LN1DhO6Gn--SrOtB_6BP43jYgbhcd5Y7EUUX0tn_epg&response_type=code&redirect_uri={redirect_uri}"
 
         github_client_id = settings.GITHUB_CLIENT_ID
         characters = string.ascii_letters + string.digits + string.punctuation
@@ -72,12 +71,13 @@ options_view = OptionsView.as_view()
 class NetlifyRedirectView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         code = request.GET.get("code")
+        base_url = f"{request.scheme}://{request.get_host()}/"
         # call the netlify API to get the access token
 
         client_id = settings.NETLIFY_CLIENT_ID
         client_secret = settings.NETLIFY_SECRET
 
-        redirect_uri = "http://localhost:8000/custom_lander/options/netlify_redirect"
+        redirect_uri = f"{base_url}custom_lander/options/netlify_redirect"
 
         # Create the payload
         payload = {
