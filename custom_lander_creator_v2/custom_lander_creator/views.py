@@ -6,6 +6,7 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.html import format_html
@@ -274,3 +275,54 @@ class GithubRepoView(LoginRequiredMixin, View):
 
 
 github_repo_view = GithubRepoView.as_view()
+
+
+class NetlifyDeployView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return render(request, "custom_lander_creator/create_netlify_site.html")
+
+    def post(self, request, *args, **kwargs):
+        token_record = OAuthToken.objects.filter(user=request.user, provider="netlify")
+        access_token = token_record[0].access_token
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        repo_name = request.POST.get("repo_name")
+        gh_username = request.POST.get("gh_username")
+        site_name = request.POST.get("site_name")
+        branch = request.POST.get("branch")
+        repo_private = request.POST.get("repo_private")
+
+        url = "https://api.netlify.com/api/v1/sites"
+
+        # Prepare the payload for the API request
+        payload = {
+            "name": site_name,
+            "account_slug": "geopopos",
+            "repo": {
+                "repo_path": f"{gh_username}/{repo_name}",
+                "repo_branch": branch
+                if branch
+                else "main",  # Default to "main" if branch is not specified
+                "public_repo": not bool(
+                    repo_private,
+                ),  # Convert the checkbox value to a boolean
+                "private_logs": bool(repo_private),
+                "repo_url": f"https://github.com/{gh_username}/{repo_name}",
+                "provider": "github",
+            },
+        }
+
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=10,
+        )
+
+        return JsonResponse(response.json())
+
+
+netlify_deploy_view = NetlifyDeployView.as_view()

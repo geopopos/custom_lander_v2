@@ -28,6 +28,13 @@
               </a>
             </li>
             <li class="nav-item">
+              {% url 'custom_lander_creator:create_netlify_site' as netlify_creator %}
+              <a class="nav-link {% if request.path == netlify_creator %}active{% endif %}"
+                 href="{{ netlify_creator }}">
+                <i class="fa-solid fa-browser"></i> Create Netlify Site
+              </a>
+            </li>
+            <li class="nav-item">
               {% url 'custom_lander_creator:options' as options_url %}
               <a class="nav-link {% if request.path == options_url %}active{% endif %}"
                  href="{{ options_url }}">
