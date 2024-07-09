@@ -144,12 +144,37 @@ class TaskListView(LoginRequiredMixin, View):
                     "status_updated_at": data["created_at"],
                 },
             )
+
+            # Check if processed_count and size are equal to create TaskResult
+            if data["processed_count"] == data["size"]:
+                result_response = requests.post(
+                    f"{settings.SPEEDYINDEX_API_URL}/v2/task/google/{task.task_type}/report",
+                    headers=headers,
+                    json={"task_id": task_id},
+                    timeout=10,
+                )
+
+                if result_response.status_code == http_ok:
+                    result_data = result_response.json().get("result")
+                    TaskResult.objects.update_or_create(
+                        task=task,
+                        defaults={
+                            "indexed_links": result_data["indexed_links"],
+                            "unindexed_links": result_data["unindexed_links"],
+                            "result_updated_at": result_data["created_at"],
+                        },
+                    )
+                else:
+                    messages.error(
+                        request,
+                        f"Failed to download task result: {result_response.json()}",
+                    )
+                    return redirect("google_indexer:task_list")
+
             return redirect("google_indexer:task_list")
+
         messages.error(request, f"Failed to check task status: {response.json()}")
         return redirect("google_indexer:task_list")
-
-
-task_list_view = TaskListView.as_view()
 
 
 class TaskDetailView(LoginRequiredMixin, View):
