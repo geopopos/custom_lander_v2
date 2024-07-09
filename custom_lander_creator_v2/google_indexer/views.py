@@ -177,6 +177,9 @@ class TaskListView(LoginRequiredMixin, View):
         return redirect("google_indexer:task_list")
 
 
+task_list_view = TaskListView.as_view()
+
+
 class TaskDetailView(LoginRequiredMixin, View):
     def get(self, request, task_id, *args, **kwargs):
         task = get_object_or_404(Task, task_id=task_id, user=request.user)
