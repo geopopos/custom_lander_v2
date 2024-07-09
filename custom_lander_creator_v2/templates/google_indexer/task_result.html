@@ -17,8 +17,46 @@
       <textarea id="unindexed_links" class="form-control" rows="10" readonly>{{ unindexed_links }}</textarea>
       <button class="btn btn-primary mt-2"
               onclick="copyToClipboard('unindexed_links')">Copy Unindexed Links</button>
+      <button class="btn btn-success mt-2"
+              onclick="confirmSubmit('unindexed_links', 'indexer')">Index these links</button>
+      <button class="btn btn-info mt-2"
+              onclick="confirmSubmit('unindexed_links', 'checker')">Check these links</button>
     </div>
     <a href="{% url 'google_indexer:task_list' %}" class="btn btn-secondary">Back to Tasks</a>
+    <form id="taskForm"
+          method="post"
+          action="{% url 'google_indexer:task_create' %}"
+          class=".d-none">
+      {% csrf_token %}
+      <input type="hidden" name="title" id="taskTitle" />
+      <input type="hidden" name="task_type" id="taskType" />
+      <input type="hidden" name="urls" id="taskUrls" />
+    </form>
+  </div>
+  <!-- Bootstrap Modal -->
+  <div class="modal fade"
+       id="confirmModal"
+       tabindex="-1"
+       aria-labelledby="confirmModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Confirmation message will be inserted here by JavaScript -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="confirmButton">Yes, proceed</button>
+        </div>
+      </div>
+    </div>
   </div>
   <script>
     function copyToClipboard(elementId) {
@@ -29,6 +67,32 @@
 
       // Optionally, you can show a message that the text has been copied
       alert("Copied the text: " + copyText.value);
+    }
+
+    function confirmSubmit(elementId, taskType) {
+      var urls = document.getElementById(elementId).value.split("\n");
+      var modalBody = document.getElementById('modalBody');
+      modalBody.innerText = `Are you sure you want to launch the ${taskType} task for ${urls.length} URLs?`;
+
+      var confirmButton = document.getElementById('confirmButton');
+      confirmButton.onclick = function() {
+        // disable confirm button
+        confirmButton.disabled = true;
+
+        // submit the form
+        submitForm(elementId, taskType);
+      };
+
+      var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      confirmModal.show();
+    }
+
+    function submitForm(elementId, taskType) {
+      var urls = document.getElementById(elementId).value;
+      document.getElementById("taskTitle").value = taskType + " task";
+      document.getElementById("taskType").value = taskType;
+      document.getElementById("taskUrls").value = urls;
+      document.getElementById("taskForm").submit();
     }
   </script>
 {% endblock inner_content %}
