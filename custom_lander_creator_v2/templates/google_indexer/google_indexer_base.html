@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+  Google Indexer
+{% endblock title %}
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="sidebarMenu"
+           class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+        <div class="position-sticky pt-3">
+          <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+              {% url 'google_indexer:home' as home_url %}
+              <a class="nav-link {% if request.path == home_url %}active{% endif %}"
+                 aria-current="page"
+                 href="{{ home_url }}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              {% url 'google_indexer:task_create' as task_create %}
+              <a class="nav-link {% if request.path == task_create %}active{% endif %}"
+                 href="{{ task_create }}">
+                <i class="fa-solid fa-plus"></i> Create
+              </a>
+            </li>
+            <li class="nav-item">
+              {% url 'google_indexer:task_list' as task_list %}
+              <a class="nav-link {% if request.path == task_list %}active{% endif %}"
+                 href="{{ task_list }}">
+                <i class="fa-solid fa-list-check"></i> Tasks
+              </a>
+            </li>
+            <li class="nav-item">
+              {% url 'custom_lander_creator:options' as options_url %}
+              <a class="nav-link {% if request.path == options_url %}active{% endif %}"
+                 href="{{ options_url }}">
+                <i class="fas fa-cogs"></i> Options
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div class="row">
+          <div class="col-sm-12">
+            <h2>Google Indexer App</h2>
+          </div>
+        </div>
+        {% block inner_content %}
+          <!-- Page specific content goes here -->
+        {% endblock inner_content %}
+      </main>
+    </div>
+  </div>
+{% endblock content %}

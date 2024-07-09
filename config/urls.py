@@ -27,6 +27,13 @@ urlpatterns = [
             namespace="custom_lander_creator",
         ),
     ),
+    path(
+        "google_indexer/",
+        include(
+            "custom_lander_creator_v2.google_indexer.urls",
+            namespace="google_indexer",
+        ),
+    ),
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

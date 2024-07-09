@@ -1,0 +1,50 @@
+{% extends "google_indexer/google_indexer_base.html" %}
+
+{% block title %}
+  My Tasks
+{% endblock title %}
+{% block inner_content %}
+  <div class="container">
+    <h1>My Tasks</h1>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Task ID</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Created At</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td>
+              <a href="{% url 'google_indexer:task_detail' task.task_id %}">{{ task.task_id }}</a>
+            </td>
+            <td>{{ task.title }}</td>
+            <td>{{ task.get_task_type_display }}</td>
+            <td>{{ task.created_at }}</td>
+            <td>
+              {% if task.status %}
+                Processed: {{ task.status.processed_count }} / {{ task.status.size }}
+                <br />
+                Indexed: {{ task.status.indexed_count }}
+              {% else %}
+                Not checked
+              {% endif %}
+            </td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="task_id" value="{{ task.task_id }}" />
+                <button type="submit" class="btn btn-primary">Check Status</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock inner_content %}

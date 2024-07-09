@@ -1,0 +1,68 @@
+{% extends "google_indexer/google_indexer_base.html" %}
+
+{% block title %}
+  Task Details
+{% endblock title %}
+{% block inner_content %}
+  <div class="container">
+    <h1>Task Details</h1>
+    <table class="table table-bordered">
+      <tr>
+        <th>Task ID</th>
+        <td>{{ task.task_id }}</td>
+      </tr>
+      <tr>
+        <th>Title</th>
+        <td>{{ task.title }}</td>
+      </tr>
+      <tr>
+        <th>Type</th>
+        <td>{{ task.get_task_type_display }}</td>
+      </tr>
+      <tr>
+        <th>Created At</th>
+        <td>{{ task.created_at }}</td>
+      </tr>
+      {% if task.status %}
+        <tr>
+          <th>Processed Count</th>
+          <td>{{ task.status.processed_count }}</td>
+        </tr>
+        <tr>
+          <th>Indexed Count</th>
+          <td>{{ task.status.indexed_count }}</td>
+        </tr>
+        <tr>
+          <th>Status Updated At</th>
+          <td>{{ task.status.status_updated_at }}</td>
+        </tr>
+      {% endif %}
+      {% if task.result %}
+        <tr>
+          <th>Indexed Links</th>
+          <td>
+            <pre>{{ task.result.indexed_links }}</pre>
+          </td>
+        </tr>
+        <tr>
+          <th>Unindexed Links</th>
+          <td>
+            <pre>{{ task.result.unindexed_links }}</pre>
+          </td>
+        </tr>
+        <tr>
+          <th>Result Updated At</th>
+          <td>{{ task.result.result_updated_at }}</td>
+        </tr>
+        <tr>
+          <th>Actions</th>
+          <td>
+            <a href="{% url 'google_indexer:task_result' task.task_id %}"
+               class="btn btn-primary">View Result</a>
+          </td>
+        </tr>
+      {% endif %}
+    </table>
+    <a href="{% url 'google_indexer:task_list' %}" class="btn btn-secondary">Back to Tasks</a>
+  </div>
+{% endblock inner_content %}

@@ -83,6 +83,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "custom_lander_creator_v2.users",
     "custom_lander_creator_v2.custom_lander_creator",
+    "custom_lander_creator_v2.google_indexer.apps.GoogleIndexerConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -319,3 +320,4 @@ SOCIALACCOUNT_FORMS = {
 # Your stuff...
 # ------------------------------------------------------------------------------
 #
+SPEEDYINDEX_API_URL = "https://api.speedyindex.com"
