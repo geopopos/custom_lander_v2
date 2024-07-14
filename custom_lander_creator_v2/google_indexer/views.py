@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -16,6 +17,7 @@ from django.views.generic import View
 
 from custom_lander_creator_v2.users.models import User
 
+from .forms import AddToProjectForm
 from .forms import ProjectForm
 from .forms import ProjectMembershipForm
 from .forms import TaskForm
@@ -204,50 +206,76 @@ task_list_view = TaskListView.as_view()
 class TaskDetailView(LoginRequiredMixin, View):
     def get(self, request, task_id, *args, **kwargs):
         task = get_object_or_404(Task, task_id=task_id, user=request.user)
-        return render(request, "google_indexer/task_detail.html", {"task": task})
+        initial_data = {"project": task.project} if task.project else {}
+        form = AddToProjectForm(user=request.user, initial=initial_data)
+        return render(
+            request,
+            "google_indexer/task_detail.html",
+            {"task": task, "form": form},
+        )
 
     def post(self, request, task_id, *args, **kwargs):
         task = get_object_or_404(Task, task_id=task_id, user=request.user)
 
-        # Fetch the API key from environment variables
-        api_key = os.getenv("SPEEDYINDEX_API_KEY")
-
-        # Send the request to download task result
-        headers = {
-            "Authorization": f"{api_key}",
-            "Content-Type": "application/json",
-        }
-        response = requests.post(
-            f"{settings.SPEEDYINDEX_API_URL}/v2/task/google/{task.task_type}/report",
-            headers=headers,
-            json={"task_id": task_id},
-            timeout=10,
-        )
-
-        http_ok = 200
-        if response.status_code == http_ok:
-            data = response.json().get("result")
-            indexed_links = data["indexed_links"]
-            unindexed_links = data["unindexed_links"]
-
-            # Save the task result to the database
-            TaskResult.objects.update_or_create(
-                task=task,
-                defaults={
-                    "indexed_links": indexed_links,
-                    "unindexed_links": unindexed_links,
-                    "result_updated_at": data["created_at"],
-                },
+        if "download_result" in request.POST:
+            # Handle the task result download
+            api_key = os.getenv("SPEEDYINDEX_API_KEY")
+            headers = {
+                "Authorization": f"{api_key}",
+                "Content-Type": "application/json",
+            }
+            response = requests.post(
+                f"{settings.SPEEDYINDEX_API_URL}/v2/task/google/{task.task_type}/report",
+                headers=headers,
+                json={"task_id": task_id},
+                timeout=10,
             )
 
-            # Create a response to download the result as a JSON file
-            response = JsonResponse(data)
-            response["Content-Disposition"] = (
-                f"attachment; filename=task_{task_id}_result.json"
+            http_ok = 200
+            if response.status_code == http_ok:
+                data = response.json().get("result")
+                indexed_links = data["indexed_links"]
+                unindexed_links = data["unindexed_links"]
+
+                # Save the task result to the database
+                TaskResult.objects.update_or_create(
+                    task=task,
+                    defaults={
+                        "indexed_links": indexed_links,
+                        "unindexed_links": unindexed_links,
+                        "result_updated_at": data["created_at"],
+                    },
+                )
+
+                # Create a response to download the result as a JSON file
+                response = JsonResponse(data)
+                response["Content-Disposition"] = (
+                    f"attachment; filename=task_{task_id}_result.json"
+                )
+                return response
+            messages.error(
+                request,
+                f"Failed to download task result: {response.json()}",
             )
-            return response
-        messages.error(request, f"Failed to download task result: {response.json()}")
-        return redirect("google_indexer:task_detail", task_id=task_id)
+            return redirect("google_indexer:task_detail", task_id=task_id)
+
+        if "set_project" in request.POST:
+            # Handle setting the project for the task
+            form = AddToProjectForm(request.POST, user=request.user)
+            if form.is_valid():
+                project = form.cleaned_data["project"]
+                if project:
+                    task.project = project
+                    task.save()
+                    messages.success(request, "Task added to project successfully.")
+                else:
+                    messages.error(request, "Please select a project.")
+            else:
+                messages.error(request, "Invalid form submission.")
+            return redirect("google_indexer:task_detail", task_id=task_id)
+
+        # error out as user is sending a post request without a valid action
+        return HttpResponseBadRequest("Invalid action.")
 
 
 task_detail_view = TaskDetailView.as_view()

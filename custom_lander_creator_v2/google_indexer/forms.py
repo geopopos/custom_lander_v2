@@ -40,3 +40,16 @@ class ProjectForm(forms.ModelForm):
 class ProjectMembershipForm(forms.Form):
     email = forms.EmailField(label="User Email")
     role = forms.ChoiceField(choices=ProjectMembership.ROLE_CHOICES, label="Role")
+
+
+class AddToProjectForm(forms.Form):
+    project = forms.ModelChoiceField(
+        queryset=None,
+        label="Project",
+        empty_label="Select a Project",
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+        self.fields["project"].queryset = Project.objects.filter(memberships__user=user)

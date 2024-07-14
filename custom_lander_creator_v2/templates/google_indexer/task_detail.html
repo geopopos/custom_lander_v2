@@ -54,14 +54,26 @@
           <th>Result Updated At</th>
           <td>{{ task.result.result_updated_at }}</td>
         </tr>
-        <tr>
-          <th>Actions</th>
-          <td>
-            <a href="{% url 'google_indexer:task_result' task.task_id %}"
-               class="btn btn-primary">View Result</a>
-          </td>
-        </tr>
       {% endif %}
+      <tr>
+        <th>Project</th>
+        <td>
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" name="set_project" class="btn btn-primary">Set Project</button>
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <th>Actions</th>
+        <td>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="download_result" class="btn btn-primary">Download Result</button>
+          </form>
+        </td>
+      </tr>
     </table>
     <a href="{% url 'google_indexer:task_list' %}" class="btn btn-secondary">Back to Tasks</a>
   </div>
