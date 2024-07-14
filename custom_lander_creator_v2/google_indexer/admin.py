@@ -1,15 +1,31 @@
 from django.contrib import admin
 
+from .models import Project
+from .models import ProjectMembership
 from .models import Task
 from .models import TaskResult
 from .models import TaskStatus
 
 
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "description", "created_at", "admin")
+    list_filter = ("created_at", "admin")
+    search_fields = ("name", "description")
+
+
+@admin.register(ProjectMembership)
+class ProjectMembershipAdmin(admin.ModelAdmin):
+    list_display = ("id", "project", "user", "role")
+    list_filter = ("project", "user", "role")
+    search_fields = ("project__name", "user__username", "role")
+
+
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ("id", "task_id", "user", "title", "task_type", "created_at")
+    list_display = ("id", "task_id", "project", "title", "task_type", "created_at")
     list_filter = ("task_type", "created_at")
-    search_fields = ("task_id", "title", "user__username")
+    search_fields = ("task_id", "title", "project__name")
 
 
 @admin.register(TaskStatus)

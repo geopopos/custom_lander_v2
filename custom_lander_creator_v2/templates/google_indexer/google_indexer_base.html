@@ -35,10 +35,10 @@
               </a>
             </li>
             <li class="nav-item">
-              {% url 'custom_lander_creator:options' as options_url %}
-              <a class="nav-link {% if request.path == options_url %}active{% endif %}"
-                 href="{{ options_url }}">
-                <i class="fas fa-cogs"></i> Options
+              {% url 'google_indexer:project_list' as projects_url %}
+              <a class="nav-link {% if request.path == projects_url %}active{% endif %}"
+                 href="{{ projects_url }}">
+                <i class="fa-solid fa-diagram-project"></i> Projects
               </a>
             </li>
           </ul>

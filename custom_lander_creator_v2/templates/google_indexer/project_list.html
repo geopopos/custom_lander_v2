@@ -1,0 +1,35 @@
+{% extends "google_indexer/google_indexer_base.html" %}
+
+{% block title %}
+  My Projects
+{% endblock title %}
+{% block inner_content %}
+  <div class="container">
+    <h1>My Projects</h1>
+    <a href="{% url 'google_indexer:project_create' %}"
+       class="btn btn-primary mb-3">Create New Project</a>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+          <tr>
+            <td>{{ project.name }}</td>
+            <td>{{ project.description }}</td>
+            <td>
+              <a href="{% url 'google_indexer:project_edit' project.pk %}"
+                 class="btn btn-secondary">Edit</a>
+              <a href="{% url 'google_indexer:project_membership' project.pk %}"
+                 class="btn btn-secondary">Manage Members</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock inner_content %}

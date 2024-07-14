@@ -14,10 +14,17 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.generic import View
 
+from custom_lander_creator_v2.users.models import User
+
+from .forms import ProjectForm
+from .forms import ProjectMembershipForm
 from .forms import TaskForm
+from .models import Project
+from .models import ProjectMembership
 from .models import Task
 from .models import TaskResult
 from .models import TaskStatus
+from .tasks import send_email
 
 
 class HomeView(LoginRequiredMixin, View):
@@ -51,15 +58,16 @@ home_view = HomeView.as_view()
 
 class TaskCreateView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        form = TaskForm()
+        form = TaskForm(user=request.user)
         return render(request, "google_indexer/task_form.html", {"form": form})
 
     def post(self, request, *args, **kwargs):
-        form = TaskForm(request.POST)
+        form = TaskForm(request.POST, user=request.user)
         if form.is_valid():
             title = form.cleaned_data["title"]
             task_type = form.cleaned_data["task_type"]
             urls = form.cleaned_data["urls"].splitlines()
+            project = form.cleaned_data["project"]
 
             # Fetch the API key from environment variables
             api_key = os.getenv("SPEEDYINDEX_API_KEY")
@@ -89,6 +97,7 @@ class TaskCreateView(LoginRequiredMixin, View):
                 # Save the task to the database
                 Task.objects.create(
                     user=request.user,
+                    project=project,
                     task_id=task_id,
                     title=title,
                     task_type=task_type,
@@ -110,8 +119,20 @@ task_create_view = TaskCreateView.as_view()
 
 class TaskListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        tasks = Task.objects.filter(user=request.user).order_by("-created_at")
-        return render(request, "google_indexer/task_list.html", {"tasks": tasks})
+        user_projects = Project.objects.filter(memberships__user=request.user)
+        project_id = request.GET.get("project_id")
+        if project_id:
+            tasks = Task.objects.filter(
+                user=request.user,
+                project_id=project_id,
+            ).order_by("-created_at")
+        else:
+            tasks = Task.objects.filter(user=request.user).order_by("-created_at")
+        return render(
+            request,
+            "google_indexer/task_list.html",
+            {"tasks": tasks, "projects": user_projects, "selected_project": project_id},
+        )
 
     def post(self, request, *args, **kwargs):
         task_id = request.POST.get("task_id")
@@ -258,3 +279,118 @@ class TaskResultView(LoginRequiredMixin, View):
 
 
 task_result_view = TaskResultView.as_view()
+
+
+class ProjectListView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        projects = Project.objects.filter(memberships__user=request.user)
+        return render(
+            request,
+            "google_indexer/project_list.html",
+            {"projects": projects},
+        )
+
+
+project_list_view = ProjectListView.as_view()
+
+
+class ProjectCreateView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        form = ProjectForm()
+        return render(request, "google_indexer/project_form.html", {"form": form})
+
+    def post(self, request, *args, **kwargs):
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.admin = request.user
+            project.save()
+            ProjectMembership.objects.create(
+                project=project,
+                user=request.user,
+                role="admin",
+            )
+            messages.success(request, "Project created successfully.")
+            return redirect("google_indexer:project_list")
+        return render(request, "google_indexer/project_form.html", {"form": form})
+
+
+project_create_view = ProjectCreateView.as_view()
+
+
+class ProjectEditView(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        project = get_object_or_404(Project, pk=pk, admin=request.user)
+        form = ProjectForm(instance=project)
+        return render(request, "google_indexer/project_form.html", {"form": form})
+
+    def post(self, request, pk, *args, **kwargs):
+        project = get_object_or_404(Project, pk=pk, admin=request.user)
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Project updated successfully.")
+            return redirect("google_indexer:project_list")
+        return render(request, "google_indexer/project_form.html", {"form": form})
+
+
+project_edit_view = ProjectEditView.as_view()
+
+# views.py
+
+
+class ProjectMembershipView(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        project = get_object_or_404(Project, pk=pk, admin=request.user)
+        form = ProjectMembershipForm()
+        members = ProjectMembership.objects.filter(project=project)
+        return render(
+            request,
+            "google_indexer/project_membership.html",
+            {"form": form, "project": project, "members": members},
+        )
+
+    def post(self, request, pk, *args, **kwargs):
+        project = get_object_or_404(Project, pk=pk, admin=request.user)
+        form = ProjectMembershipForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            role = form.cleaned_data["role"]
+            user, created = User.objects.get_or_create(email=email)
+            if created:
+                user.username = email.split("@")[0]
+                user.save()
+
+            ProjectMembership.objects.create(project=project, user=user, role=role)
+            send_email.delay(
+                f"You were invited to join the project {project.name}",
+                "YES",
+                [email],
+            )
+            messages.success(request, "Member added successfully.")
+            return redirect("google_indexer:project_membership", pk=project.pk)
+        members = ProjectMembership.objects.filter(project=project)
+        return render(
+            request,
+            "google_indexer/project_membership.html",
+            {"form": form, "project": project, "members": members},
+        )
+
+
+project_membership_view = ProjectMembershipView.as_view()
+
+
+class ProjectMembershipRemoveView(LoginRequiredMixin, View):
+    def post(self, request, project_pk, membership_pk, *args, **kwargs):
+        project = get_object_or_404(Project, pk=project_pk, admin=request.user)
+        membership = get_object_or_404(
+            ProjectMembership,
+            pk=membership_pk,
+            project=project,
+        )
+        membership.delete()
+        messages.success(request, "Member removed successfully.")
+        return redirect("google_indexer:project_membership", pk=project.pk)
+
+
+project_membership_remove_view = ProjectMembershipRemoveView.as_view()
