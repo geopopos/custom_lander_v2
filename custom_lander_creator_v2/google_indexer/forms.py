@@ -4,6 +4,7 @@ from django import forms
 
 from .models import Project
 from .models import ProjectMembership
+from .models import Task
 
 
 class TaskForm(forms.Form):
@@ -53,3 +54,11 @@ class AddToProjectForm(forms.Form):
         user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
         self.fields["project"].queryset = Project.objects.filter(memberships__user=user)
+
+
+class EditTaskForm(forms.ModelForm):
+    class Meta:
+        # add a label to the task title field
+        labels = {"title": "New Task Title"}
+        model = Task
+        fields = ["title"]

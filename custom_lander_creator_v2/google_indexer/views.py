@@ -18,6 +18,7 @@ from django.views.generic import View
 from custom_lander_creator_v2.users.models import User
 
 from .forms import AddToProjectForm
+from .forms import EditTaskForm
 from .forms import ProjectForm
 from .forms import ProjectMembershipForm
 from .forms import TaskForm
@@ -208,14 +209,26 @@ class TaskDetailView(LoginRequiredMixin, View):
         task = get_object_or_404(Task, task_id=task_id, user=request.user)
         initial_data = {"project": task.project} if task.project else {}
         form = AddToProjectForm(user=request.user, initial=initial_data)
+        task_edit_form = EditTaskForm(instance=task)
         return render(
             request,
             "google_indexer/task_detail.html",
-            {"task": task, "form": form},
+            {"task": task, "form": form, "task_edit_form": task_edit_form},
         )
 
     def post(self, request, task_id, *args, **kwargs):
         task = get_object_or_404(Task, task_id=task_id, user=request.user)
+
+        if "title" in request.POST:
+            # Handle the task title edit
+            form = EditTaskForm(request.POST, instance=task)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Task title updated successfully.")
+                return redirect("google_indexer:task_detail", task_id=task_id)
+
+            messages.error(request, "Failed to update task title.")
+            return redirect("google_indexer:task_detail", task_id=task_id)
 
         if "download_result" in request.POST:
             # Handle the task result download
