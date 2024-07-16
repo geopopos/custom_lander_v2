@@ -395,7 +395,8 @@ class ProjectMembershipView(LoginRequiredMixin, View):
         project = get_object_or_404(Project, pk=pk, admin=request.user)
         form = ProjectMembershipForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data["email"]
+            email = form.cleaned_data["email"].lower()
+
             role = form.cleaned_data["role"]
             try:
                 user = User.objects.get(email=email)
