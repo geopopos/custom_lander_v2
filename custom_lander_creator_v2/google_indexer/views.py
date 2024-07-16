@@ -397,10 +397,11 @@ class ProjectMembershipView(LoginRequiredMixin, View):
         if form.is_valid():
             email = form.cleaned_data["email"]
             role = form.cleaned_data["role"]
-            user, created = User.objects.get_or_create(email=email)
-            if created:
-                user.username = email.split("@")[0]
-                user.save()
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                messages.error(request, f"User with email {email} does not exist.")
+                return redirect("google_indexer:project_membership", pk=project.pk)
 
             ProjectMembership.objects.create(project=project, user=user, role=role)
             send_email.delay(
